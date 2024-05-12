@@ -401,7 +401,7 @@ async def fetch_questions():
     return results
 
 
-async def eval_all(id):
+async def eval_all(id, model1, model2):
     # Run full list of questions
     questions = await fetch_questions()
     for category in questions:
@@ -409,8 +409,8 @@ async def eval_all(id):
             await battle(
                 id,
                 question["question"],
-                input.Model1,
-                input.Model2,
+                model1,
+                model2,
                 category["_id"],
             )
 
@@ -454,7 +454,7 @@ async def fight(input: FightModel, background_tasks: BackgroundTasks):
                 "type": "default",
             }
         )
-        asyncio.create_task(eval_all(session.inserted_id))
+        asyncio.create_task(eval_all(session.inserted_id, input.Model1, input.Model2))
 
         return {"status": "success", "session_id": str(session.inserted_id)}
         # break
