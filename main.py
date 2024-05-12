@@ -18,4 +18,5 @@ if __name__ == "__main__":
             port=int(config("PORT")),
             reload=True,
             timeout_keep_alive=10000,
+            workers=3,
         )
