@@ -296,6 +296,8 @@ async def get_leaderboard():
 
             # Organize data by category and collect scores
             for item in record["scores"]:
+                if item["category"] == "Category":
+                    continue
                 category = item["category"]
                 categories[category]["questions"].append(item["question"])
                 categories[category]["agent1_scores"].append(item["results"]["agent1"])
@@ -444,15 +446,7 @@ async def eval_all(id, model1, model2):
     # Run full list of questions
     questions = await fetch_questions()
     for category in questions:
-        if (
-            category["_id"] == "Environment and Energy"
-            or category["_id"] == "Health and Medicine"
-            or category["_id"] == "Science and Technology "
-            or category["_id"] == "Social Issues"
-            or category["_id"] == "Politics and Governance"
-            or category["_id"] == "Philosophy "
-            or category["_id"] == "Culture and Society"
-        ):
+        if category["_id"] == "Category":
             continue
         for question in category["questions"]:
             print(question)
