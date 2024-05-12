@@ -138,7 +138,7 @@ async def evalute_battle(id):
         )
 
 
-async def battle(id, question, model1, model2, category=None):
+async def battle(id, question, model1, model2, category=None, eval=True):
     client = Groq(api_key=config("GROQ_API_KEY"))
     context = []
 
@@ -251,6 +251,7 @@ async def battle(id, question, model1, model2, category=None):
 
     for role, stage, content_function, model in parts:
         context.append(generate_completion(role, stage, content_function, model))
+        time.sleep(2)
     temp = model1
     model1 = model2
     model2 = temp
@@ -258,6 +259,7 @@ async def battle(id, question, model1, model2, category=None):
     context = []
     for role, stage, content_function, model in parts:
         context.append(generate_completion(role, stage, content_function, model))
+        time.sleep(2)
 
     new_battle = {
         "question": question,
@@ -270,23 +272,58 @@ async def battle(id, question, model1, model2, category=None):
         {"_id": id},
         {"$push": {"battles": new_battle}},
     )
-    await evalute_battle(id)
+    if eval:
+        await evalute_battle(id)
 
     # # Save as JSON
     # with open("output1.json", "w") as outfile:
     #     json.dump({"model1_aff": model1_aff, "model2_aff": context}, outfile)
 
 
-# @app.get("/leaderboard")
-# async def get_leaderboard(id):
-#     session = await db.session.find_one({"_id": ObjectId(id)})
-#     if session["type"] == "custom":
-#         return HTTPException(status_code=400, detail="Invalid Request")
-#     else:
-#         if session["status"] == "pending":
-#             return {"status": "pending"}
-#         else:
-#             print(session["scores"])
+@app.get("/leaderboard")
+async def get_leaderboard():
+    all_records = await db.session.find(
+        {"status": "completed", "type": "default"}
+    ).to_list(length=1000)
+    if all_records is None:
+        return HTTPException(status_code=404, detail="No records found")
+    else:
+        results = []
+        for record in all_records:
+            categories = defaultdict(
+                lambda: {"questions": [], "agent1_scores": [], "agent2_scores": []}
+            )
+
+            # Organize data by category and collect scores
+            for item in record["scores"]:
+                category = item["category"]
+                categories[category]["questions"].append(item["question"])
+                categories[category]["agent1_scores"].append(item["results"]["agent1"])
+                categories[category]["agent2_scores"].append(item["results"]["agent2"])
+
+            # Prepare the output
+            output = []
+            for category, details in categories.items():
+                mean_score_agent1 = sum(details["agent1_scores"]) / len(
+                    details["agent1_scores"]
+                )
+                mean_score_agent2 = sum(details["agent2_scores"]) / len(
+                    details["agent2_scores"]
+                )
+                output.append(
+                    {
+                        "category": category,
+                        "score of model1": mean_score_agent1,
+                        "score of model2": mean_score_agent2,
+                    }
+                )
+            response = {
+                "type": record["type"],
+                "id": str(record["_id"]),
+                "results": output,
+            }
+            results.append(response)
+        return results
 
 
 @app.get("/")
@@ -405,14 +442,23 @@ async def eval_all(id, model1, model2):
     # Run full list of questions
     questions = await fetch_questions()
     for category in questions:
+        if (
+            category["_id"] == "Environment and Energy"
+            or category["_id"] == "Health and Medicine"
+            or category["_id"] == "Science and Technology "
+        ):
+            continue
         for question in category["questions"]:
+            print(question)
             await battle(
                 id,
                 question["question"],
                 model1,
                 model2,
                 category["_id"],
+                eval=False,
             )
+    await evalute_battle(id)
 
     # await evalute_battle(ObjectId("6640967518cc26a183adceb0"))
 
@@ -455,6 +501,7 @@ async def fight(input: FightModel, background_tasks: BackgroundTasks):
             }
         )
         asyncio.create_task(eval_all(session.inserted_id, input.Model1, input.Model2))
+        # await evalute_battle(ObjectId("6640bfe7c29f29022c13cdf3"))
 
         return {"status": "success", "session_id": str(session.inserted_id)}
         # break

@@ -15,8 +15,7 @@ if __name__ == "__main__":
         uvicorn.run(
             "app.app:app",
             host=config("HOST"),
-            port=int(config("PORT")),
-            reload=True,
+            port=int(8081),
+            reload=False,
             timeout_keep_alive=10000,
-            workers=3,
         )
