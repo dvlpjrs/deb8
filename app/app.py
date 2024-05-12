@@ -39,7 +39,6 @@ async def evalute_battle(id):
     ]
     models = ["gpt-4-turbo"]
     for question in session["battles"]:
-        print(question)
         context1_Agent1 = "\n".join(
             x["result"]
             for x in question["model1_aff"]
@@ -271,7 +270,7 @@ async def battle(id, question, model1, model2, category=None):
         {"_id": id},
         {"$push": {"battles": new_battle}},
     )
-    await evalute_battle(session.inserted_id)
+    await evalute_battle(id)
 
     # # Save as JSON
     # with open("output1.json", "w") as outfile:
@@ -402,6 +401,22 @@ async def fetch_questions():
     return results
 
 
+async def eval_all(id):
+    # Run full list of questions
+    questions = await fetch_questions()
+    for category in questions:
+        for question in category["questions"]:
+            await battle(
+                id,
+                question["question"],
+                input.Model1,
+                input.Model2,
+                category["_id"],
+            )
+
+    # await evalute_battle(ObjectId("6640967518cc26a183adceb0"))
+
+
 @app.post("/fight")
 async def fight(input: FightModel, background_tasks: BackgroundTasks):
     if not input.defaultQuestion:
@@ -439,18 +454,8 @@ async def fight(input: FightModel, background_tasks: BackgroundTasks):
                 "type": "default",
             }
         )
-        # Run full list of questions
-        questions = await fetch_questions()
-        for category in questions:
-            for question in category["questions"]:
-                await battle(
-                    session.inserted_id,
-                    question["question"],
-                    input.Model1,
-                    input.Model2,
-                    category["_id"],
-                )
-        await evalute_battle(ObjectId("6640967518cc26a183adceb0"))
+        asyncio.create_task(eval_all(session.inserted_id))
+
         return {"status": "success", "session_id": str(session.inserted_id)}
         # break
         # await evalute_battle(session.inserted_id)
