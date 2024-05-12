@@ -147,7 +147,7 @@ async def battle(id, question, model1, model2, category=None, eval=True):
         messages = [
             {
                 "role": "system",
-                "content": f"Debate format: Karl Popper you're at a debating event this is your following role and stage of debate.\nType: {role}\nStage: {stage}",
+                "content": f"Debate format Karl Popper format; You are at a debating event; here is your role and the stage of the debate; maintain an affirm stance on your position and respond in raw text format and no special characters.\nType: {role}\nStage: {stage}",
             },
             {"role": "user", "content": content},
         ]
@@ -318,6 +318,8 @@ async def get_leaderboard():
                     }
                 )
             response = {
+                "model1": record["model1"],
+                "model2": record["model2"],
                 "type": record["type"],
                 "id": str(record["_id"]),
                 "results": output,
@@ -446,6 +448,10 @@ async def eval_all(id, model1, model2):
             category["_id"] == "Environment and Energy"
             or category["_id"] == "Health and Medicine"
             or category["_id"] == "Science and Technology "
+            or category["_id"] == "Social Issues"
+            or category["_id"] == "Politics and Governance"
+            or category["_id"] == "Philosophy "
+            or category["_id"] == "Culture and Society"
         ):
             continue
         for question in category["questions"]:
