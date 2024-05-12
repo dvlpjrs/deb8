@@ -12,9 +12,5 @@ if __name__ == "__main__":
         )
     else:
         uvicorn.run(
-            "app.app:app",
-            host=config("HOST"),
-            port=int(config("PORT")),
-            reload=True,
-            workers=4,
+            "app.app:app", host=config("HOST"), port=int(config("PORT")), reload=True
         )
