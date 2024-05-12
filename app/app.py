@@ -282,7 +282,7 @@ async def get_results(session_id: str):
 
 @app.post("/fight")
 async def fight(input: FightModel):
-    if input.defaultQuestion:
+    if not input.defaultQuestion:
         # create session
         session = await db.session.insert_one(
             {
@@ -301,4 +301,5 @@ async def fight(input: FightModel):
             )
             await evalute_battle(session.inserted_id)
             return {"status": "success", "session_id": str(session.inserted_id)}
+
     # return grok(input.Model1, input.Model2)
