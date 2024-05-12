@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Security
+from fastapi import FastAPI, Depends, HTTPException, Security, BackgroundTasks
 from decouple import config
 from app.model.fightModel import FightModel
 from groq import Groq
@@ -9,6 +9,7 @@ from openai import OpenAI
 from bson import ObjectId
 from fastapi.middleware.cors import CORSMiddleware
 from collections import defaultdict
+import asyncio
 
 
 app = FastAPI()
@@ -20,6 +21,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+loop = asyncio.get_event_loop()
 
 
 def openai_response(model, prompt):
@@ -270,6 +273,7 @@ async def battle(id, question, model1, model2, category=None):
         {"_id": id},
         {"$push": {"battles": new_battle}},
     )
+    await evalute_battle(id)
 
     # # Save as JSON
     # with open("output1.json", "w") as outfile:
@@ -295,7 +299,11 @@ async def read_root():
 
 @app.get("/fight")
 async def get_status(id):
-    return id
+    session = await db.session.find_one({"_id": ObjectId(id)})
+    if session is None:
+        return HTTPException(status_code=404, detail="Session not found")
+    else:
+        return {"status": session["status"]}
 
 
 @app.get("/results")
@@ -397,7 +405,7 @@ async def fetch_questions():
 
 
 @app.post("/fight")
-async def fight(input: FightModel):
+async def fight(input: FightModel, background_tasks: BackgroundTasks):
     if not input.defaultQuestion:
         # create session
         session = await db.session.insert_one(
@@ -412,10 +420,17 @@ async def fight(input: FightModel):
         if input.question is None:
             raise HTTPException(status_code=400, detail="Question not provided")
         else:
-            await battle(
-                session.inserted_id, input.question, input.Model1, input.Model2
+            # background_tasks.add_task(
+            #     battle, session.inserted_id, input.question, input.Model1, input.Model2
+            # )
+
+            loop.create_task(
+                battle(session.inserted_id, input.question, input.Model1, input.Model2)
             )
-            await evalute_battle(session.inserted_id)
+            # await battle(
+            #     session.inserted_id, input.question, input.Model1, input.Model2
+            # )
+
             return {"status": "success", "session_id": str(session.inserted_id)}
     else:
         session = await db.session.insert_one(
