@@ -22,8 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-loop = asyncio.get_event_loop()
-
 
 def openai_response(model, prompt):
     client = OpenAI(api_key=config("OPENAI_API_KEY"))
@@ -424,7 +422,7 @@ async def fight(input: FightModel, background_tasks: BackgroundTasks):
             #     battle, session.inserted_id, input.question, input.Model1, input.Model2
             # )
 
-            loop.create_task(
+            asyncio.create_task(
                 battle(session.inserted_id, input.question, input.Model1, input.Model2)
             )
             # await battle(
