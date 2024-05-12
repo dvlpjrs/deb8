@@ -269,7 +269,9 @@ async def get_results(session_id: str):
 async def get_results(session_id: str):
     results = await db.session.find_one({"_id": ObjectId(session_id)})
     if results["type"] == "custom":
-        for item in results["battle"]:
+        for item in results["battle"]["model1_aff"]:
+            item.pop("messages", None)
+        for item in results["battle"]["model2_aff"]:
             item.pop("messages", None)
         response = {
             "type": results["type"],
