@@ -313,8 +313,8 @@ async def get_leaderboard():
                 output.append(
                     {
                         "category": category,
-                        "score of model1": mean_score_agent1,
-                        "score of model2": mean_score_agent2,
+                        "score of model1": mean_score_agent2,
+                        "score of model2": mean_score_agent1,
                     }
                 )
             response = {
@@ -507,7 +507,7 @@ async def fight(input: FightModel, background_tasks: BackgroundTasks):
             }
         )
         asyncio.create_task(eval_all(session.inserted_id, input.Model1, input.Model2))
-        # await evalute_battle(ObjectId("6640bfe7c29f29022c13cdf3"))
+        # await evalute_battle(ObjectId("6640e0962b64ae54b4ea0422"))
 
         return {"status": "success", "session_id": str(session.inserted_id)}
         # break
