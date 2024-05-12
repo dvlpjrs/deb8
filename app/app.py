@@ -128,7 +128,14 @@ async def evalute_battle(id):
                         },
                     },
                 )
-            break
+        await db.session.update_one(
+            {"_id": id},
+            {
+                "$set": {
+                    "status": "completed",
+                },
+            },
+        )
 
 
 async def battle(id, question, model1, model2, category=None):
