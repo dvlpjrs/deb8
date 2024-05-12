@@ -265,11 +265,12 @@ async def get_results(session_id: str):
         return response
 
 
-@app.get("/analyise")
+@app.get("/analysis")
 async def get_results(session_id: str):
     results = await db.session.find_one({"_id": ObjectId(session_id)})
-
     if results["type"] == "custom":
+        for item in results["battle"]:
+            item.pop("messages", None)
         response = {
             "type": results["type"],
             "results": results["battle"],
