@@ -271,6 +271,7 @@ async def battle(id, question, model1, model2, category=None):
         {"_id": id},
         {"$push": {"battles": new_battle}},
     )
+    await evalute_battle(session.inserted_id)
 
     # # Save as JSON
     # with open("output1.json", "w") as outfile:
@@ -421,13 +422,12 @@ async def fight(input: FightModel, background_tasks: BackgroundTasks):
             #     battle, session.inserted_id, input.question, input.Model1, input.Model2
             # )
 
-            # a.create_task(
-            #     battle(session.inserted_id, input.question, input.Model1, input.Model2)
-            # )
-            await battle(
-                session.inserted_id, input.question, input.Model1, input.Model2
+            asyncio.create_task(
+                battle(session.inserted_id, input.question, input.Model1, input.Model2)
             )
-            await evalute_battle(session.inserted_id)
+            # await battle(
+            #     session.inserted_id, input.question, input.Model1, input.Model2
+            # )
 
             return {"status": "success", "session_id": str(session.inserted_id)}
     else:
