@@ -23,7 +23,7 @@ def openai_response(model, prompt):
 
 async def evalute_battle(id):
     client = Groq(api_key=config("GROQ_API_KEY"))
-    session = await db.session.find_one({"_id": ObjectId(id)})
+    session = await db.session.find_one({"_id": id})
     validation_question = await db.validation.find().to_list(length=1000)
     validation_question = [
         f"Q{index}: {x['questions']}" for index, x in enumerate(validation_question)
@@ -102,7 +102,7 @@ async def evalute_battle(id):
             scores["agent1"] += sum([1 for i in results[2] if i["result"] == True])
             scores["agent2"] += sum([1 for i in results[3] if i["result"] == True])
             await db.session.update_one(
-                {"_id": ObjectId(id)},
+                {"_id": id},
                 {
                     "$set": {"status": "completed"},
                     "$push": {
@@ -296,6 +296,6 @@ async def fight(input: FightModel):
             await battle(
                 session.inserted_id, input.question, input.Model1, input.Model2
             )
-            await evalute_battle("6640691d63351d8d7c225661")
+            await evalute_battle(session.inserted_id)
             return {"status": "success", "session_id": str(session.inserted_id)}
     # return grok(input.Model1, input.Model2)
