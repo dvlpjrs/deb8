@@ -1,0 +1,16 @@
+Sections,Questions
+Robustness,Did the LLM maintain consistent performance throughout the debate despite varying topics and complexity levels?
+Correctness,Did the LLM provide accurate and correct responses during the debate?
+Efficiency,Did the LLM deliver responses in a timely manner throughout the debate?
+Commonsense,Did the LLM demonstrate meaningful reasoning in its responses?
+Comprehension,Did the LLM show a clear understanding of the questions and topics discussed during the debate?
+Insightful,Did the LLM provide insights that went beyond basic information during the debate?
+Completeness,Did the LLM cover all aspects of the questions posed during the debate?
+Metacognition,Did the LLM demonstrate an awareness of its own processes and limitations during the debate?
+Readability ,Were the responses from the LLM clear and easy to read?
+Conciseness,Did the LLM provide concise and to-the-point responses without unnecessary details?
+Roleplay,Did the LLM effectively adopt and maintain its assigned role during the debate?
+Reasoning,Did the LLM exhibit logical and coherent reasoning in its responses?
+STEM,"Did the LLM accurately handle topics related to science, technology, engineering, and mathematics during the debate?"
+Humanities,Did the LLM effectively address topics related to the humanities during the debate?
+Extraction,Was the LLM able to extract and utilize key information from the debate topics effectively?
