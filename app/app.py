@@ -7,10 +7,18 @@ import time
 from app.utils.database import Database
 from openai import OpenAI
 from bson import ObjectId
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
 db = Database().db
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def openai_response(model, prompt):
@@ -280,6 +288,20 @@ async def get_results(session_id: str):
         return response
 
 
+async def fetch_questions():
+    categories = await db.questions.distinct("category")  # Get all unique categories
+    limited_results = []
+
+    # We limit to 10 categories for the example; remove slicing if you want all categories
+    for category in categories[:10]:
+        # For each category, fetch 10 questions
+        cursor = db.questions.find({"category": category}).limit(10)
+        questions = await cursor.to_list(length=10)
+        limited_results.extend(questions)
+
+    return limited_results
+
+
 @app.post("/fight")
 async def fight(input: FightModel):
     if not input.defaultQuestion:
@@ -301,5 +323,21 @@ async def fight(input: FightModel):
             )
             await evalute_battle(session.inserted_id)
             return {"status": "success", "session_id": str(session.inserted_id)}
-
+    else:
+        # Run full list of questions
+        session = await db.session.insert_one(
+            {
+                "question": input.question,
+                "model1": input.Model1,
+                "model2": input.Model2,
+                "status": "pending",
+                "type": "default",
+            }
+        )
+        questions = await db.questions.find().to_list(length=10000)
+        for question in questions:
+            # await battle(
+            #     session.inserted_id, question["questions"], input.Model1, input.Model2
+            # )
+            print(question)
     # return grok(input.Model1, input.Model2)
